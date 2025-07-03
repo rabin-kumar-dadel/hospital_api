@@ -6,13 +6,6 @@ from accounts.models import *
 import random
 
 
-@receiver(post_save, sender = Customuser )
-def automatic_create_a_doctor_profile(sender, instance, created, **kwargs):
-            if instance.is_doctor or instance.is_active:
-                DoctorProfile.objects.get_or_create(user=instance)
-                print('profile is created ')
-        
-
 
 def generate_random_number_for_patient():
     prefix = 'PAT-'
@@ -26,7 +19,5 @@ def generate_auto_patient_id_after_doctor_verify(sender, created, instance, **kw
         instance.patient_id = generate_random_number_for_patient()
         print(instance.patient_id)
         instance.save(update_fields=['patient_id'])
-
-
 
 

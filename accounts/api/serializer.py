@@ -3,37 +3,53 @@ from rest_framework import serializers
 from accounts.models import *
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate,login
-
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from accounts.models import Customuser, PatientProfile  # Adjust if needed
 
 class PatientRegisterSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only = True, style = {'input_type':'password'})
-    password2 = serializers.CharField(write_only = True, style = {'input_type':'password'})
+    phone_number = serializers.CharField(write_only=True)
+    first_name = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
     class Meta:
-        model = Customuser
-        fields = ['phone_number', 'first_name', 'password1', 'password2']
+        model = PatientProfile
+        fields = [
+            'phone_number', 'first_name', 'password', 'confirm_password',
+            'middle_name', 'lastname', 'date_of_birth', 'gender', 'phone',
+            'province', 'district', 'local_level', 'ward_number', 'street_address'
+        ]
 
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match.")
+        if Customuser.objects.filter(phone_number=data['phone_number']).exists():
+            raise serializers.ValidationError("Phone number already registered.")
+        validate_password(data['password'])
+        return data
 
-    def validate(self, attrs):
-        password1 = attrs['password1']
-        password2 = attrs['password2']
-        if password1 != password2:
-            raise serializers.ValidationError("Passwords मिलेन।")
-        validate_password(attrs['password1'])
-        return attrs
-    
-    
     def create(self, validated_data):
-        validated_data.pop('password2')  # remove password2 safely
-        password = validated_data.pop('password1')
-        user = Customuser(
-            phone_number=validated_data['phone_number'],
-            first_name=validated_data['first_name'],
+        # Extract and remove user-related fields
+        phone_number = validated_data.pop('phone_number')
+        first_name = validated_data.pop('first_name')
+        password = validated_data.pop('password')
+        validated_data.pop('confirm_password')
+
+        # Create user
+        user = Customuser.objects.create_user(
+            phone_number=phone_number,
+            first_name=first_name,
+            is_active=False,
+            is_patient=True,
+            role='patient',
         )
         user.set_password(password)
-        user.is_patient =  True
-        user.role = 'patient'
         user.save()
-        return user
+
+        # Create profile
+        patient = PatientProfile.objects.create(user=user, **validated_data)
+        return patient
 
     
 

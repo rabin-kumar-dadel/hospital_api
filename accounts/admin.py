@@ -4,7 +4,8 @@ from accounts.models import *
 class Useradmin(admin.ModelAdmin):
     list_display = ['phone_number', 'first_name','is_active', 'is_patient', 'is_doctor', 'role', 'is_superuser', 'is_staff']
 class patientadmin(admin.ModelAdmin):
-    list_display = ['id', 'approve', 'patient_id']
+    list_display =  ['user', 'middle_name', 'lastname', 'date_of_birth', 'gender', 'phone',
+            'province', 'district', 'local_level', 'ward_number', 'street_address','patient_id','approve']
 
 admin.site.register(Customuser, Useradmin)
 

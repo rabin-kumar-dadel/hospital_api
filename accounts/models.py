@@ -74,8 +74,11 @@ class Customuser(AbstractBaseUser):
 
 class DoctorProfile(models.Model):
     user = models.OneToOneField(Customuser, on_delete=models.CASCADE)
-    department = models.CharField(max_length=100)
     specialization = models.TextField()
+    license_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    experience_years = models.PositiveIntegerField(default=0)
+    hospital_location = models.CharField(max_length=255, default='')
+    department = models.CharField(max_length=100)
 
     def __str__(self):
         return self.user.first_name
@@ -86,10 +89,20 @@ class PatientProfile(models.Model):
     approve = models.BooleanField(null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
     address = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    middle_name = models.CharField(max_length=50, blank=True, null=True ,default=None)
+    lastname  = models.CharField(max_length=50, blank=True, null=True ,default=None)
+    date_of_birth = models.DateField(default=None)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female')] ,default=None)
+    phone = models.CharField(max_length=15, default=None)
+    province = models.CharField(max_length=100, default=None)
+    district = models.CharField(max_length=100, default=None)
+    local_level = models.CharField(max_length=100, default=None)
+    ward_number = models.CharField(max_length=10, default=None)
+    street_address = models.CharField(max_length=255, default=None)
+
 
     def __str__(self):
-        return self.user.first_name
+        return f"{self.user.first_name} {self.lastname}"
 
 class Appointment(models.Model):
     patient = models.ForeignKey(Customuser, on_delete=models.CASCADE, related_name='patient_appointments')

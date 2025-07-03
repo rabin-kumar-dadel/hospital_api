@@ -31,10 +31,14 @@ def get_tokens_for_user(user):
 
 
 class PatientRegisterApiView(CreateAPIView):
-    queryset = Customuser.objects.none()
+    queryset = PatientProfile.objects.all()
     serializer_class = PatientRegisterSerializer
     permission_classes = [AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.data['message'] = "User created successfully!"
+        return response
 
 
 class AuthViewSet(viewsets.ViewSet):

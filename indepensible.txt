@@ -1,0 +1,6 @@
+@receiver(post_save, sender = Customuser )
+def automatic_create_a_doctor_profile(sender, instance, created, **kwargs):
+            if instance.is_doctor or instance.is_active:
+                DoctorProfile.objects.get_or_create(user=instance)
+                print('profile is created ')
+        

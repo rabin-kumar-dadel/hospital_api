@@ -49,33 +49,9 @@ class PatientApponmentApprove(UpdateAPIView):
 
 
 
-class DoctorRegisterApi(viewsets.ViewSet):
-
-    @action(detail=False, methods=['POST'], url_path='register')
-    def doctor_register(self, request):
-        serializer = DoctorRegistrationSerializer(data= request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({'message':'success'}, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['POST'], url_path='login')
-    def doctor_login(self, request):
-        serializer = DoctorloginSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            phone_number = serializer.validated_data['phone_number']
-            password = serializer.validated_data['password']
-
-            user = authenticate(username = phone_number, password=password)
-            if user is not None:
-                login(request, user)
-                token = get_tokens_for_user(user)
-                return Response({'message':'success', 'token':token}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message':'invalid credentials'})
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class DoctorRegisterView(CreateAPIView):
+    serializer_class = DoctorRegisterSerializer
+    permission_classes = [AllowAny]
 
 
 # doctorprofile completion 

@@ -21,13 +21,13 @@ from rest_framework.routers import DefaultRouter
 
 # for the patient and doctor registration api
 router = DefaultRouter()
-router.register(r'' ,DoctorRegisterApi, basename='doctor_register')
 router.register(r'patientregisterapi' ,AppointmentPatientCreate, basename='patient_CRUD')
 
 
 urlpatterns = [
     path('api/', include(router.urls)),
-
+    path('api/register/',DoctorRegisterView.as_view(), name='doctor_register'),
+    
     # patient code generate api 
     path('patient/code/<pk>/', PatientCodeGenerateApi.as_view(), name='patient_code'),
 
