@@ -39,7 +39,7 @@ class PatientRegisterApiView(CreateAPIView):
 
 class AuthViewSet(viewsets.ViewSet):
     
-    @action(detail=False, methods=['post'], url_path='patient/login')
+    @action(detail=False, methods=['post'], url_path='login')
     def patient_login(self, request):
         serializer = PatientLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -62,73 +62,6 @@ class AuthViewSet(viewsets.ViewSet):
 
 
 
-class PatientCodeGenerateApi(UpdateAPIView):
-    permission_classes = [IsAuthenticated, isDoctor]
-    queryset = PatientProfile.objects.all()
-    serializer_class = PatientCodeAutoGenerateSerializer
-    
-
-class PatientApponmentApprove(UpdateAPIView):
-    permission_classes = [IsAuthenticated, isDoctor]
-    queryset = Appointment.objects.all()
-    serializer_class = ApproveApponmentByDoctor
-
-
-
-
-
-class DoctorRegisterApi(viewsets.ViewSet):
-
-    @action(detail=False, methods=['POST'], url_name='register')
-    def doctor_register(self, request):
-        serializer = DoctorRegistrationSerializer(data= request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({'message':'success'}, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['POST'], url_path='login')
-    def doctor_login(self, request):
-        
-        serializer = DoctorloginSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            phone_number = serializer.validated_data['phone_number']
-            password = serializer.validated_data['password']
-
-            user = authenticate(username = phone_number, password=password)
-            if user is not None:
-                login(request, user)
-                token = get_tokens_for_user(user)
-                return Response({'message':'success', 'token':token}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message':'invalid credentials'})
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# doctorprofile completion 
-
-
-class DoctorProfileApi(RetrieveUpdateAPIView):
-    serializer_class = DoctorprofileSerializer
-    permission_classes = [IsAuthenticated, isDoctor]
-    throttle_classes = [UserRateThrottle]
-    
-    def get_object(self):
-        return self.request.user.doctorprofile
-    
-  
-    
-    
-
-class DoctorApponmentView(ListAPIView):
-    serializer_class = DoctorRelatedAppoinmentSerializer
-    permission_classes = [IsAuthenticated, isDoctor]
-    
-    def get_queryset(self):
-        return Appointment.objects.select_related('doctor').filter(doctor = self.request.user)
-    
 
 class AppointmentPatientCreate(viewsets.ModelViewSet):
     serializer_class = ApponmentSerializer
@@ -140,6 +73,5 @@ class AppointmentPatientCreate(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(patient = self.request.user)
         
-
 
 

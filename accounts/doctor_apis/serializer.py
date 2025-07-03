@@ -5,42 +5,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate,login
 
 
-class PatientRegisterSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only = True, style = {'input_type':'password'})
-    password2 = serializers.CharField(write_only = True, style = {'input_type':'password'})
-    class Meta:
-        model = Customuser
-        fields = ['phone_number', 'first_name', 'password1', 'password2']
-
-
-    def validate(self, attrs):
-        password1 = attrs['password1']
-        password2 = attrs['password2']
-        if password1 != password2:
-            raise serializers.ValidationError("Passwords मिलेन।")
-        validate_password(attrs['password1'])
-        return attrs
-    
-    
-    def create(self, validated_data):
-        validated_data.pop('password2')  # remove password2 safely
-        password = validated_data.pop('password1')
-        user = Customuser(
-            phone_number=validated_data['phone_number'],
-            first_name=validated_data['first_name'],
-        )
-        user.set_password(password)
-        user.is_patient =  True
-        user.role = 'patient'
-        user.save()
-        return user
 
     
-
-class PatientLoginSerializer(serializers.Serializer):
-    phone_number = serializers.CharField()
-    password = serializers.CharField(style = {'input_type':'password'})
-
 
 
 class PatientCodeAutoGenerateSerializer(serializers.ModelSerializer):
@@ -56,7 +22,45 @@ class PatientCodeAutoGenerateSerializer(serializers.ModelSerializer):
  
 
 
+class DoctorRegistrationSerializer(serializers.ModelSerializer):
+    password1 = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    password2 = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    class Meta:
+        model = Customuser
+        fields = ['phone_number', 'first_name', 'password1', 'password2']
 
+    
+    def validate(self, attrs):
+        password1 = attrs['password1']
+        password2 = attrs['password2']
+        if password1 != password2:
+            raise serializers.ValidationError("Passwords मिलेन।")
+        validate_password(attrs['password1'])
+        return attrs
+    
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        password = validated_data['password1']
+        user = Customuser(phone_number = validated_data['phone_number'], first_name = validated_data['first_name'])
+        user.set_password(password)
+        user.role = 'doctor'
+        user.is_doctor = False
+        user.is_active = False
+        user.save()
+        return  user
+    
+
+class DoctorloginSerializer(serializers.Serializer):
+    phone_number = serializers.CharField()
+    password = serializers.CharField(style = {'input_type':'password'})
+    
+
+
+class DoctorprofileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoctorProfile
+        fields = ['department', 'specialization']
+        read_only_fields = ['user']
 
     
 

@@ -23,5 +23,6 @@ from accounts.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('apis/', include('accounts.api.urls')),
+    path('patient/', include('accounts.api.urls')),
+    path('doctor/', include('accounts.doctor_apis.urls')),
 ]
