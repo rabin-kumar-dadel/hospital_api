@@ -48,6 +48,7 @@ class Customuser(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
     is_patient = models.BooleanField(default=False)
     is_doctor =  models.BooleanField(default=False)
+    is_nurse = models.BooleanField(default=False)
     role = models.CharField(max_length=50)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -106,6 +107,18 @@ class PatientProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.first_name} {self.lastname}"
+
+class NurseProfile(models.Model):
+    user = models.OneToOneField(Customuser, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100)
+    license_number = models.CharField(max_length=50)
+    experience_years = models.PositiveIntegerField()
+    hospital_location = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"Nurse {self.full_name}"
+
+
 
 class Appointment(models.Model):
     patient = models.ForeignKey(Customuser, on_delete=models.CASCADE, related_name='patient_appointments')

@@ -25,4 +25,5 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('patient/', include('accounts.api.urls')),
     path('doctor/', include('accounts.doctor_apis.urls')),
+    path('authorize/', include('accounts.authorize_apis.urls')),
 ]

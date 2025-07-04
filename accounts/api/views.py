@@ -29,7 +29,7 @@ def get_tokens_for_user(user):
     }
 
 
-
+# patient register view
 class PatientRegisterApiView(CreateAPIView):
     queryset = PatientProfile.objects.all()
     serializer_class = PatientRegisterSerializer
@@ -41,32 +41,25 @@ class PatientRegisterApiView(CreateAPIView):
         return response
 
 
-class AuthViewSet(viewsets.ViewSet):
-    
-    @action(detail=False, methods=['post'], url_path='login')
-    def patient_login(self, request):
-        serializer = PatientLoginSerializer(data=request.data)
+# patient login view
+class PatientLoginView(GenericAPIView):
+    serializer_class = PatientLoginSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        phone_number = serializer.validated_data['phone_number']
-        password = serializer.validated_data['password']
-
-        # Authenticate user
-        user = authenticate(username=phone_number, password=password)
-        if user is not None:
-            login(request, user)  # Optional: only needed if using Django sessions
-            token = get_tokens_for_user(user)
-
-            return Response({
-                'message': 'Login सफल भयो',
-                'token': token
-            }, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # ✅ Add custom message to response
+        return Response({
+            "message": "patient logged in successfully.",
+            "refresh": data['refresh'],
+            "access": data['access'],
+        }, status=status.HTTP_200_OK)
 
 
 
-
+# Patient appoinment creating veiw
 class AppointmentPatientCreate(viewsets.ModelViewSet):
     serializer_class = ApponmentSerializer
     permission_classes = [IsAuthenticated, ispatient]

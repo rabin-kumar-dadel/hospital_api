@@ -31,15 +31,13 @@ def get_tokens_for_user(user):
 
 
 
-
-
-
+# patient code generator by doctor
 class PatientCodeGenerateApi(UpdateAPIView):
     permission_classes = [IsAuthenticated, isDoctor]
     queryset = PatientProfile.objects.all()
     serializer_class = PatientCodeAutoGenerateSerializer
     
-
+# approved appoinment of patient
 class PatientApponmentApprove(UpdateAPIView):
     permission_classes = [IsAuthenticated, isDoctor]
     queryset = Appointment.objects.all()
@@ -48,15 +46,29 @@ class PatientApponmentApprove(UpdateAPIView):
 
 
 
-
+# doctor register view
 class DoctorRegisterView(CreateAPIView):
     serializer_class = DoctorRegisterSerializer
     permission_classes = [AllowAny]
 
 
-# doctorprofile completion 
+# doctor login veiw
+class DoctorLoginView(GenericAPIView):
+    serializer_class = DoctorLoginSerializer
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Adding custom message to response
+        return Response({
+            "message": "Doctor logged in successfully.",
+            "refresh": data['refresh'],
+            "access": data['access'],
+        }, status=status.HTTP_200_OK)
 
 
+# doctor profile update view
 class DoctorProfileApi(RetrieveUpdateAPIView):
     serializer_class = DoctorprofileSerializer
     permission_classes = [IsAuthenticated, isDoctor]
@@ -68,7 +80,7 @@ class DoctorProfileApi(RetrieveUpdateAPIView):
   
     
     
-
+# doctor appoinment view
 class DoctorApponmentView(ListAPIView):
     serializer_class = DoctorRelatedAppoinmentSerializer
     permission_classes = [IsAuthenticated, isDoctor]
@@ -76,17 +88,3 @@ class DoctorApponmentView(ListAPIView):
     def get_queryset(self):
         return Appointment.objects.select_related('doctor').filter(doctor = self.request.user)
     
-
-class AppointmentPatientCreate(viewsets.ModelViewSet):
-    serializer_class = ApponmentSerializer
-    permission_classes = [IsAuthenticated, ispatient]
-    queryset = Appointment.objects.all()
-    throttle_classes = [UserRateThrottle]
-
-
-    def perform_create(self, serializer):
-        serializer.save(patient = self.request.user)
-        
-
-
-

@@ -4,6 +4,13 @@ from accounts.models import *
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate,login
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 
     
@@ -19,10 +26,8 @@ class PatientCodeAutoGenerateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         return super().validate(attrs)
 
- 
-from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
 
+# doctor registration serializer
 class DoctorRegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField()
     phone_number = serializers.CharField(write_only=True)
@@ -71,12 +76,34 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         return doctor
 
 
+# doctor login serializer
+class DoctorLoginSerializer(serializers.Serializer):
+    phone_number = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        phone_number = attrs.get('phone_number')
+        password = attrs.get('password')
+
+        user = authenticate(request=self.context.get('request'), phone_number=phone_number, password=password)
+
+        if not user:
+            raise serializers.ValidationError("Invalid credentials.")
+        if not user.is_active:
+            raise serializers.ValidationError("Account inactive.")
+        if not user.is_doctor:
+            raise serializers.ValidationError("Access denied: Not a doctor.")
+
+        token = get_tokens_for_user(user)
+
+        return {
+            'refresh': str(token),
+            'access': str(token),
+            'phone_number': user.phone_number,
+        }
 
 
-class DoctorloginSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(write_only=True)
-    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
-
+# doctor profile serializer
 class DoctorprofileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorProfile
@@ -84,15 +111,8 @@ class DoctorprofileSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
     
-
-
-class UserbasicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customuser
-        fields = ['first_name']
-
     
-
+# doctor related apponments serializer
 class DoctorRelatedAppoinmentSerializer(serializers.ModelSerializer):
     doctor = UserbasicSerializer(read_only = True)
     patient = UserbasicSerializer(read_only = True)
@@ -101,16 +121,7 @@ class DoctorRelatedAppoinmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'doctor', 'patient', 'appointment_date', 'description', 'is_approved' ]
 
 
-
-class ApponmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Appointment
-        fields = [ 'doctor', 'appointment_date', 'description']
-
-
-
-
-
+# all approved appoinments by doctor
 class ApproveApponmentByDoctor(serializers.ModelSerializer):
     is_approved = serializers.BooleanField(write_only = True)
     class Meta:
@@ -134,3 +145,61 @@ class ApproveApponmentByDoctor(serializers.ModelSerializer):
         return instance
     
 
+
+
+class AuthorizedRegisterSerializer(serializers.Serializer):
+    ROLE_CHOICES = (
+        ('doctor', 'Doctor'),
+        ('nurse', 'Nurse'),
+        ('admin', 'Admin'),
+    )
+
+    full_name = serializers.CharField()
+    phone_number = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=ROLE_CHOICES)
+
+    # Optional fields for doctor/nurse profiles
+    specialization = serializers.CharField(required=False)
+    license_number = serializers.CharField(required=False)
+    experience_years = serializers.IntegerField(required=False)
+    hospital_location = serializers.CharField(required=False)
+    department = serializers.CharField(required=False)
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match.")
+
+        if Customuser.objects.filter(phone_number=data['phone_number']).exists():
+            raise serializers.ValidationError("Phone number already registered.")
+
+     
+        return data
+
+    def create(self, validated_data):
+        role = validated_data.pop('role')
+        full_name = validated_data.pop('full_name')
+        phone_number = validated_data.pop('phone_number')
+        password = validated_data.pop('password')
+        validated_data.pop('confirm_password', None)
+
+        first_name = full_name.strip()
+
+        user = Customuser.objects.create_user(
+            phone_number=phone_number,
+            first_name = first_name,
+            is_doctor=(role == 'doctor'),
+            is_nurse=(role == 'nurse'),
+            is_admin=(role == 'admin'),
+            is_active=True,
+        )
+        user.set_password(password)
+        user.save()
+
+        if role == 'doctor':
+            return DoctorProfile.objects.create(user=user, full_name=full_name, **validated_data)
+        elif role == 'nurse':
+            return NurseProfile.objects.create(user=user, full_name=full_name, **validated_data)
+
+        return user  # for admin, return user only

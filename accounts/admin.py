@@ -18,3 +18,6 @@ class apponmentadmin(admin.ModelAdmin):
 admin.site.register(Appointment, apponmentadmin)
 admin.site.register(DoctorProfile)
 admin.site.register(PatientProfile, patientadmin)
+
+# register NurseProfile
+admin.site.register(NurseProfile)
