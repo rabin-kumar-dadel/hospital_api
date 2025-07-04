@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-import uuid
-from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
 
 
 class MyUserManager(BaseUserManager):
@@ -133,13 +133,18 @@ class Appointment(models.Model):
 
 
 
-class Article(models.Model):
-    title = models.CharField(max_length=200)
-    pub_date = models.DateField()
 
-    
-    def get_absolute_url(self):
-        return reverse("article-detail", kwargs={"pk": self.pk})
-    
+class OtpVerification(models.Model):
+    phone_number = models.CharField(max_length=50)
+    otp = models.CharField(max_length=50)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=2)
+
+    def __str__(self):
+        return f"{self.Phone_number} - {self.otp}"
+    
 

@@ -21,3 +21,6 @@ admin.site.register(PatientProfile, patientadmin)
 
 # register NurseProfile
 admin.site.register(NurseProfile)
+
+# register OtpVerification
+admin.site.register(OtpVerification)

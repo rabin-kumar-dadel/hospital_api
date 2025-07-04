@@ -8,20 +8,16 @@ from django.views import View
 from django.contrib.auth import logout
 from accounts.mixins import *
 from django.views.generic import CreateView,ListView,DeleteView,DetailView,UpdateView
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from django.views.generic.dates import TodayArchiveView
 from accounts.api.serializer import *
 from accounts.api.serializer import *
 from rest_framework.mixins import *
 from rest_framework.generics import *
-from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate,login
-from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 
 
 
@@ -200,6 +196,36 @@ class DoctorProfileUpdatevIEW(LoginRequiredMixin,UpdateView):
 
 
 
+# views.py
+
+from .serializers import (
+    RequestOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
+)
+
+class RequestOTPView(APIView):
+    def post(self, request):
+        serializer = RequestOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'OTP sent successfully.'}, status=200)
+        return Response(serializer.errors, status=400)
+
+
+class VerifyOTPView(APIView):
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({'message': 'OTP verified.'}, status=200)
+        return Response(serializer.errors, status=400)
+
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Password reset successful.'}, status=200)
+        return Response(serializer.errors, status=400)
 
         
 
