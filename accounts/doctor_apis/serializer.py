@@ -24,6 +24,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 
 class DoctorRegisterSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField()
     phone_number = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
@@ -31,7 +32,7 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorProfile
         fields = [
-            'phone_number', 'password', 'confirm_password', 'specialization', 'license_number',
+            'full_name','phone_number', 'password', 'confirm_password', 'specialization', 'license_number',
             'experience_years', 'hospital_location', 'department', 
         ]
 
@@ -42,17 +43,20 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         # Optional: Validate phone number uniqueness here
         if Customuser.objects.filter(phone_number=data['phone_number']).exists():
             raise serializers.ValidationError("Phone number already registered.")
-
         return data
 
     def create(self, validated_data):
+        full_name = validated_data.pop('full_name')
         phone_number = validated_data.pop('phone_number')
         password = validated_data.pop('password')
         validated_data.pop('confirm_password')
 
+        first_name = full_name.strip()
+
         # Create user — better to use your custom user manager's create_user method
         user = Customuser.objects.create_user(
             phone_number=phone_number,
+            first_name = first_name,
             is_active=False,        # depends on your workflow
             is_doctor=False,         # mark as doctor
             role='doctor',          # make sure this is a valid role choice
@@ -61,7 +65,9 @@ class DoctorRegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         # Create doctor profile linked to user
-        doctor = DoctorProfile.objects.create(user=user, **validated_data)
+        doctor = DoctorProfile.objects.create(user=user,
+                                              full_name = full_name, 
+                                              **validated_data)
         return doctor
 
 

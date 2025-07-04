@@ -73,6 +73,7 @@ class Customuser(AbstractBaseUser):
 
 
 class DoctorProfile(models.Model):
+    full_name = models.CharField(max_length=50, default='None')
     user = models.OneToOneField(Customuser, on_delete=models.CASCADE)
     specialization = models.TextField()
     license_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
@@ -81,7 +82,9 @@ class DoctorProfile(models.Model):
     department = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.user.first_name
+        return self.full_name
+
+   
 
 class PatientProfile(models.Model):
     user = models.OneToOneField(Customuser, on_delete=models.CASCADE)
