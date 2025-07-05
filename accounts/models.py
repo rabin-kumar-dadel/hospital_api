@@ -145,6 +145,6 @@ class OtpVerification(models.Model):
         return timezone.now() > self.created_at + timedelta(minutes=2)
 
     def __str__(self):
-        return f"{self.Phone_number} - {self.otp}"
+        return f"{self.phone_number} - {self.otp}"
     
 
