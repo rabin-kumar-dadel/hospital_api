@@ -19,8 +19,12 @@ admin.site.register(Appointment, apponmentadmin)
 admin.site.register(DoctorProfile)
 admin.site.register(PatientProfile, patientadmin)
 
+class NurseprofileAdmin(admin.ModelAdmin):
+    list_display = ['full_name', 'license_number', 'experience_years', 'hospital_location']
+
+
 # register NurseProfile
-admin.site.register(NurseProfile)
+admin.site.register(NurseProfile, NurseprofileAdmin)
 
 # register OtpVerification
 admin.site.register(OtpVerification)

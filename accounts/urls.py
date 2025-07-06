@@ -31,11 +31,9 @@ urlpatterns = [
     
 
 # password reset api endpoints
-    path('api/request-otp/', RequestOTPView.as_view(), name='request-otp'),
+    path('api/password-reset/', RequestOTPView.as_view(), name='request-otp'),
     path('api/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('api/reset-password/', ResetPasswordView.as_view(), name='reset-password'),
-
-
 
 
 ]

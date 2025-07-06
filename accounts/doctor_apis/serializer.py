@@ -202,4 +202,4 @@ class AuthorizedRegisterSerializer(serializers.Serializer):
         elif role == 'nurse':
             return NurseProfile.objects.create(user=user, full_name=full_name, **validated_data)
 
-        return user  # for admin, return user only
+        return user  

@@ -18,6 +18,9 @@ from rest_framework.generics import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from .serializers import (
+    RequestOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
+)
 
 
 
@@ -198,9 +201,7 @@ class DoctorProfileUpdatevIEW(LoginRequiredMixin,UpdateView):
 
 # views.py
 
-from .serializers import (
-    RequestOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
-)
+
 
 class RequestOTPView(APIView):
     def post(self, request):
